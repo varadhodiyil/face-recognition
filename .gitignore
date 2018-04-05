@@ -1,0 +1,10 @@
+*media
+*saved model v2
+*summary_log
+*training_face_rec
+*labels.pkl
+*.pyc
+*.jpg
+*.bmp
+*.png
+*.jpeg
