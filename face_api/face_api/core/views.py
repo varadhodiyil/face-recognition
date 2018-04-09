@@ -8,7 +8,7 @@ from django.core.files.storage import FileSystemStorage
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import MultiPartParser , JSONParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -68,7 +68,8 @@ class Verify(GenericAPIView):
         if s.is_valid():
             file_obj = s.validated_data['data']
             file_type = file_obj.content_type.split('/')[0]
-            if file_type == "video":
+            print file_type
+            if file_type == "video" or file_type == "application":
                 fs = FileSystemStorage()
                 path = os.path.join('verify',file_obj.name)
                 filename = fs.save(path, file_obj)
@@ -96,6 +97,21 @@ class Verify(GenericAPIView):
 
 class FundTransfer(GenericAPIView):
     permission_classes = ((IsAuthenticated,))
+    parser_classes = (JSONParser,)
+    serializer_class = serializers.FundTransferSerializer
 
-    def get(self,request,*args,**kwargs):
-        return Response()
+    def post(self,request,*args,**kwargs):
+        user = request.user.id
+        data = request.data.copy()
+        data['user'] = user
+        s = serializers.FundTransferSerializer(data=data)
+        result = dict()
+        if s.is_valid():
+            s.save()
+            result['status'] = True
+            return Response(result)
+        else:
+            result['status'] = False
+            result['erros'] = s.errors
+            return Response(result,status=status.HTTP_400_BAD_REQUEST)
+

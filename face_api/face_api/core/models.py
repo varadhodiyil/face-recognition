@@ -11,6 +11,15 @@ TOKEN_EXPIRE_TIME = datetime.timedelta(days=30)
 class Users(AbstractUser):
     file_path = models.CharField(max_length=250,default=None,null=True)
 
+class FundTransfer(models.Model):
+	id = models.AutoField(primary_key=True)
+	user = models.ForeignKey(Users)
+	amount = models.FloatField()
+	to_user = models.CharField(max_length=100)
+	transaction_time = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		db_table = 'fund_transfer'
 
 class TokenManager(models.Manager):
 	def delete_session(self, *args, **kwargs):
