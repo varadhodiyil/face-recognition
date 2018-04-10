@@ -58,7 +58,7 @@ class Enroll(GenericAPIView):
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
 
-class Verify(GenericAPIView):
+class Login(GenericAPIView):
     parser_classes = (MultiPartParser,)
     serializer_class = serializers.VerifySerializer
     def post(self, request,*args,**kwargs):
@@ -97,7 +97,7 @@ class Verify(GenericAPIView):
 
 class FundTransfer(GenericAPIView):
     permission_classes = ((IsAuthenticated,))
-    parser_classes = (JSONParser,)
+    parser_classes = (MultiPartParser,)
     serializer_class = serializers.FundTransferSerializer
 
     def post(self,request,*args,**kwargs):
@@ -107,11 +107,68 @@ class FundTransfer(GenericAPIView):
         s = serializers.FundTransferSerializer(data=data)
         result = dict()
         if s.is_valid():
-            s.save()
-            result['status'] = True
-            return Response(result)
+
+            file_obj = s.validated_data['data']
+            file_type = file_obj.content_type.split('/')[0]
+            print file_type
+            if file_type == "video" or file_type == "application":
+                fs = FileSystemStorage()
+                path = os.path.join('verify',file_obj.name)
+                filename = fs.save(path, file_obj)
+                _path =  os.path.join(MEDIA_ROOT,filename)
+                print _path
+                result['status'] = True
+                v_user = VerifyUser()
+                r_user = v_user.get_results(_path)
+                print r_user , user.__str__()
+                if r_user == user.__str__():  
+                    s.validated_data.pop("data")   
+                    s.save()
+                    result['status'] = True
+                    return Response(result)
+                else:
+                    result['status'] = False
+                    result['error'] = "Invalid User"
+                    return Response(result)
         else:
             result['status'] = False
             result['erros'] = s.errors
             return Response(result,status=status.HTTP_400_BAD_REQUEST)
 
+
+
+class Verify(GenericAPIView):
+    parser_classes = (MultiPartParser,)
+    serializer_class = serializers.VerifySerializer
+    def post(self, request,*args,**kwargs):
+        data = request.data
+        s = serializers.VerifySerializer(data=data)
+        result = dict()
+        if s.is_valid():
+            file_obj = s.validated_data['data']
+            file_type = file_obj.content_type.split('/')[0]
+            print file_type
+            if file_type == "video" or file_type == "application":
+                fs = FileSystemStorage()
+                path = os.path.join('verify',file_obj.name)
+                filename = fs.save(path, file_obj)
+                _path =  os.path.join(MEDIA_ROOT,filename)
+                print _path
+                result['status'] = True
+                v_user = VerifyUser()
+
+                user = v_user.get_results(_path)
+                user = models.Users.objects.filter(id=user)
+                user = get_object_or_404(user)
+                
+                token = models.Token(user=user).save()
+                result['token'] = token.key
+                return Response(result)
+            else:
+                result['status'] = False
+                result['error'] = "Please Select a valid video file"
+                return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            result['status'] = False
+            result['errors'] = s.errors
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)

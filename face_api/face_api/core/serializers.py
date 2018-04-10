@@ -16,6 +16,7 @@ class VerifySerializer(serializers.Serializer):
 
 
 class FundTransferSerializer(serializers.ModelSerializer):
+    data = serializers.FileField()
     class Meta:
         fields = '__all__'
         model = models.FundTransfer

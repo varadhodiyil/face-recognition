@@ -17,6 +17,6 @@ from django.conf.urls import url
 from face_api.core import views
 urlpatterns = [
     url(r'enroll/$',views.Enroll.as_view()),
-    url(r'verify/$',views.Verify.as_view()),
+    url(r'login/$',views.Login.as_view()),
     url(r'transfer/$', views.FundTransfer.as_view())
 ]
