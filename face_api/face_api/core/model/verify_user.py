@@ -4,6 +4,9 @@ import cv2
 from DataSetGenerator import DataSetGenerator
 from opencv_utils import OpenCVHelper
 from predictor import Predictor
+from eye_detect import EyeBlinkDetector
+
+eye_p = EyeBlinkDetector()
 path = os.path.dirname(os.path.abspath(__file__))
 class VerifyUser:
 	def __init__(self):
@@ -20,6 +23,10 @@ class VerifyUser:
 			return False
 
 		""" ------------------- Loading and process the video file ----------------- """
+		num_blinks = eye_p.get_num_blinks(file_in)
+		print "Num Blinks : %d " % num_blinks
+		if num_blinks <=0:
+			return None , "No Eye Blink found. !"
 		cap = cv2.VideoCapture(file_in)
 		results = list()
 		while True:
@@ -35,8 +42,8 @@ class VerifyUser:
 		if len(results) > 0:
 			r = sum(results) / float(len(results))
 			r = int(abs(r))
-			return self.dg.data_labels[r]
-		return None
+			return self.dg.data_labels[r] , True
+		return None , "No Face Found !"
 if __name__ == '__main__':
 	v = VerifyUser()
-	print v.get_results("/home/madhan/Documents/skalenow/face_api/face_api/core/model/media/verify/1.mp4")
+	print v.get_results("media/verify/1.mp4")

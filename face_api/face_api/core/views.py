@@ -8,7 +8,7 @@ from django.core.files.storage import FileSystemStorage
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
-from rest_framework.parsers import MultiPartParser , JSONParser
+from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -68,22 +68,25 @@ class Login(GenericAPIView):
         if s.is_valid():
             file_obj = s.validated_data['data']
             file_type = file_obj.content_type.split('/')[0]
-            print file_type
             if file_type == "video" or file_type == "application":
                 fs = FileSystemStorage()
                 path = os.path.join('verify',file_obj.name)
                 filename = fs.save(path, file_obj)
                 _path =  os.path.join(MEDIA_ROOT,filename)
-                print _path
-                result['status'] = True
-                v_user = VerifyUser()
 
-                user = v_user.get_results(_path)
-                user = models.Users.objects.filter(id=user)
-                user = get_object_or_404(user)
                 
-                token = models.Token(user=user).save()
-                result['token'] = token.key
+                v_user  = VerifyUser()
+
+                user , status_ = v_user.get_results(_path)
+                print user , status_
+                if user:
+                    result['status'] = True
+                    user = models.Users.objects.filter(id=user)
+                    user = get_object_or_404(user)
+                    token = models.Token(user=user).save()
+                    result['token'] = token.key
+                    result['status'] = status_
+                result['status'] = False
                 return Response(result)
             else:
                 result['status'] = False
@@ -122,16 +125,18 @@ class FundTransfer(GenericAPIView):
                     print _path
                     result['status'] = True
                     v_user = VerifyUser()
-                    r_user = v_user.get_results(_path)
+                    r_user , status_ = v_user.get_results(_path)
                     print r_user , user.__str__()
                     if r_user == user.__str__():  
                         s.validated_data.pop("data")   
                         s.save()
                         result['status'] = True
+                        result['result'] = status_
                         return Response(result)
                     else:
                         result['status'] = False
                         result['error'] = "Invalid User"
+                        result['result'] = status_
                         return Response(result)
             else:
                 result['status'] = False
@@ -163,12 +168,13 @@ class Verify(GenericAPIView):
                 result['status'] = True
                 v_user = VerifyUser()
 
-                user = v_user.get_results(_path)
+                user , status_ = v_user.get_results(_path)
                 user = models.Users.objects.filter(id=user)
                 user = get_object_or_404(user)
                 
                 token = models.Token(user=user).save()
                 result['token'] = token.key
+                result['result'] = status_
                 return Response(result)
             else:
                 result['status'] = False
@@ -178,4 +184,3 @@ class Verify(GenericAPIView):
             result['status'] = False
             result['errors'] = s.errors
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
-        

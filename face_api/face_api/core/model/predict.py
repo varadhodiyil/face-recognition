@@ -85,7 +85,7 @@ with tf.Session() as sess:
             return test_pred[0]
     test_img = cv2.imread('temp.jpg')
     test_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
-    dg = DataSetGenerator("/home/madhan/Documents/skalenow/face_reco/train_faces")
+    dg = DataSetGenerator("train_faces")
     labels =  dg.load_labels()
     _np_labels = list()
     for i in range(len(labels)):
