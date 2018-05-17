@@ -51,6 +51,11 @@ def gen_train(file_in, path_out, rot_enable=False):
                 
                 out_name = os.path.join(path_out, user_name, file_name + '_' + str(frame_ind) + '.bmp')
                 func_class.make_folder(out_name)
+                if frame_ind % 3 ==0:
+                    if frame_ind % 6 == 0:
+                        img_face = cv2.rotate(img_face,cv2.ROTATE_90_CLOCKWISE)
+                    else:
+                        img_face = cv2.rotate(img_face,cv2.ROTATE_90_COUNTERCLOCKWISE)
                 cv2.imwrite(out_name, img_face)
 
     return True

@@ -46,8 +46,8 @@ class EyeBlinkDetector():
 		(lStart, lEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
 		(rStart, rEnd) = face_utils.FACIAL_LANDMARKS_IDXS["right_eye"]
 
-		print("[INFO] starting video stream thread...")
-		vs = FileVideoStream(media_file).start()
+		print("[INFO] starting video stream thread for %s  ..."% media_file)
+		vs = cv2.VideoCapture(media_file)
 		fileStream = True
 		# vs = VideoStream(src=0).start()
 		# vs = VideoStream().start()
@@ -58,14 +58,16 @@ class EyeBlinkDetector():
 		# loop over frames from the video stream
 		while True:
 			k = cv2.waitKey(30) & 0xff
-
+			# print vs.more()
 			if k == 27:
 				break
-			if fileStream and not vs.more():
+			# if fileStream and not vs.more():
+			# 	break
+			ret ,frame = vs.read()
+			if not ret:
 				break
-			frame = vs.read()
-
 			rects = detector(frame, 0)
+			# cv2.imshow('image',frame)
 			for rect in rects:
 
 				shape = self.predictor(frame, rect)
@@ -96,7 +98,7 @@ class EyeBlinkDetector():
 
 			if DEBUG:
 				cv2.imshow("Frame", frame)
-		vs.stop()
+		# vs.destroy()
 		cv2.destroyAllWindows()
 		return TOTAL
 
@@ -105,7 +107,7 @@ if __name__ == '__main__':
 	ey = EyeBlinkDetector()
 	ap = argparse.ArgumentParser()
 
-	ap.add_argument("-v", "--video", type=str, default="1.mp4",
+	ap.add_argument("-v", "--video", type=str,
                  help="path to input video file")
 	args = vars(ap.parse_args())
 	print ey.get_num_blinks(args['video'])

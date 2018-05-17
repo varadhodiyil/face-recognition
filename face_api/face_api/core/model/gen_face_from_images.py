@@ -6,7 +6,7 @@ import numpy as np
 from opencv_utils import OpenCVHelper
 
 helper = OpenCVHelper()
-def gen_train(file_in, path_out, rot_enable=False):
+def gen_train(file_in, path_out, index):
 
     # func_class = Func()
 
@@ -16,6 +16,7 @@ def gen_train(file_in, path_out, rot_enable=False):
         return False
 
     """ ------------------- Loading and process the video file ----------------- """
+    print "File %s" % file_in
     frame = cv2.imread(file_in)
     frame_ind = 0
     f_bool = True
@@ -24,12 +25,10 @@ def gen_train(file_in, path_out, rot_enable=False):
 
     f_bool = not f_bool
 
-
     # ------------ Rotate the image 90 ------------
     frame_ind += 1
 
-    if rot_enable:
-        frame = np.rot90(frame)
+    
     # cv2.imshow('image',frame)
     # cv2.waitKey(0)
     # -------------- Face detection ----------------
@@ -46,6 +45,11 @@ def gen_train(file_in, path_out, rot_enable=False):
         out_name = os.path.join(path_out, user_name, file_name + '_' + str(frame_ind) + '.bmp')
         print out_name
         helper.make_folder(out_name)
+        if frame_ind % 5 ==0:
+            if frame_ind % 10 == 0:
+                img_face = cv2.rotate(img_face,cv2.ROTATE_90_CLOCKWISE)
+            else:
+                img_face = cv2.rotate(img_face,cv2.ROTATE_90_COUNTERCLOCKWISE)
         cv2.imwrite(out_name, img_face)
 
     return True

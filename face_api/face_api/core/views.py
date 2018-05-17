@@ -79,6 +79,9 @@ class Login(GenericAPIView):
 
                 user , status_ = v_user.get_results(_path)
                 print user , status_
+                if user is None:
+                    result['status'] = False
+                    result['errors']  = status_
                 if user:
                     result['status'] = True
                     user = models.Users.objects.filter(id=user)
@@ -86,7 +89,7 @@ class Login(GenericAPIView):
                     token = models.Token(user=user).save()
                     result['token'] = token.key
                     result['status'] = status_
-                result['status'] = False
+                # result['status'] = False
                 return Response(result)
             else:
                 result['status'] = False
